@@ -18,7 +18,7 @@ func expiredDateTime(expiresIn int) time.Time {
 }
 
 
-func SearchArtist(id string) (map[string]interface{}) {
+func SearchArtist(id string) (map[string]interface{}, error) {
 
 	var token string
 	var ctx = context.Background()
@@ -44,7 +44,7 @@ func SearchArtist(id string) (map[string]interface{}) {
 		fmt.Println("Get token from Spotify API")
 		token, err := spotifytoken.GetToken()
 		if err != nil {
-			return map[string]interface{}{ "message": "cannot get token" }
+			return nil, fmt.Errorf("cannot get token from Spotify API: %w", err)
 		}
 		expiredDateTime := expiredDateTime(token.ExpiresIn)
 		tokenSession := make(map[string]interface{})
@@ -61,7 +61,7 @@ func SearchArtist(id string) (map[string]interface{}) {
 
 	req, err := http.NewRequest("GET", requestUrl, nil)
 	if err != nil {
-		return map[string]interface{}{ "message": "cannot build request" }
+		return nil, fmt.Errorf("cannot build request: %w", err)
 	}
 	
 	req.Header.Set("Authorization", "Bearer " + token)
@@ -71,7 +71,7 @@ func SearchArtist(id string) (map[string]interface{}) {
 	resp, err := client.Do(req)
 
 	if err != nil {
-		return map[string]interface{}{ "message": "cannot send request" }
+		return nil, fmt.Errorf("cannot send request: %w", err)
 	}
 
 	defer resp.Body.Close()
@@ -79,7 +79,7 @@ func SearchArtist(id string) (map[string]interface{}) {
 	responseBody, err := io.ReadAll(resp.Body)
 
 	if err != nil {
-		return map[string]interface{}{ "message": "cannot read response" }
+		return nil, fmt.Errorf("cannot read response: %w", err)
 	}
 
 	var responseJson map[string]interface{}
@@ -87,8 +87,8 @@ func SearchArtist(id string) (map[string]interface{}) {
 	erro := json.Unmarshal(responseBody, &responseJson)
 	
 	if erro != nil {
-		return map[string]interface{}{ "message": "cannot read response" }
+		return nil, fmt.Errorf("cannot read response: %w", err)
 	}
 
-	return responseJson
+	return responseJson, nil
 }
