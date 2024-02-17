@@ -1,21 +1,31 @@
 package main
 
-
 import (
-	"./spotifySearch"
-	// "./spotifytoken"
 	"fmt"
+	"./spotifyFilter"
+	"./spotifySearch"
+	"./spotifySelector"
 )
 
 func main() {
 	
-	responseJson := spotifySearch.SearchArtist("13bJ4DAZH1QLc1fOmlZI24")
+	responseJson, _ := spotifySearch.SearchArtist("13bJ4DAZH1QLc1fOmlZI24")	
+
+	fmt.Println(responseJson.Episodes.Limit)
+	fmt.Println(responseJson.Episodes.Next)
+	fmt.Println(responseJson.Episodes.Offset)
+
+	res, err := spotifyFilter.Filter(responseJson.Episodes, "Name", "新資料夾")
 	
-	fmt.Println(responseJson)
-	// token, err := spotifytoken.GetToken()
-	// if err != nil {
-	// 	fmt.Println("errorrrrrr!!!")
-	// }
-	// fmt.Println(token.AcessToken)
+	if err != nil {
+		fmt.Println("err!!!!!!!!")
+	}
+
+	display, err := spotifySelector.Select(res)
+
+	if err != nil {
+		fmt.Println("err!!!!!!!!")
+	}
 	
+	fmt.Println(display)
 }

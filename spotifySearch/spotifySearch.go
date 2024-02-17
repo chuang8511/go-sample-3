@@ -5,52 +5,22 @@ import (
 	"io"
 	"net/http"
 	"encoding/json"
-	"github.com/redis/go-redis"
-	"context"
 	"fmt"
-	"time"
 )
 
-func expiredDateTime(expiresIn int) time.Time {
-	currentDateTime := time.Now()
-	expireDateTime := currentDateTime.Add(time.Second * time.Duration(expiresIn))
-	return expireDateTime
-}
 
-
-func SearchArtist(id string) (map[string]interface{}, error) {
+func SearchArtist(id string) (*Response, error) {
 
 	var token string
-	var ctx = context.Background()
-	
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-        Password: "",
-        DB:       0,
-	})
-
-	expiredDateTimeString, errDateTime := rdb.HGet(ctx, "tokenSession", "expiredDateTime").Result()
-
-	if errDateTime != redis.Nil {
-		expiredDateTime, _ := time.Parse(time.RFC3339, expiredDateTimeString)
-		currentDateTime := time.Now()
-		if expiredDateTime.After(currentDateTime) {
-			fmt.Println("Get token from Cache")
-			token, _ = rdb.HGet(ctx, "tokenSession", "token").Result()
-		}
-	}
+	token, _ = spotifytoken.GetCacheToken()
 
 	if token == "" {
 		fmt.Println("Get token from Spotify API")
-		token, err := spotifytoken.GetToken()
+		tokenStruct, err := spotifytoken.GetToken()
 		if err != nil {
 			return nil, fmt.Errorf("cannot get token from Spotify API: %w", err)
 		}
-		expiredDateTime := expiredDateTime(token.ExpiresIn)
-		tokenSession := make(map[string]interface{})
-		tokenSession["token"] = token.AcessToken
-		tokenSession["expiredDateTime"] = expiredDateTime
-		rdb.HSet(ctx, "tokenSession", tokenSession)
+		token = tokenStruct.AcessToken
 	}	
 
 	artistId := id
@@ -82,7 +52,7 @@ func SearchArtist(id string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("cannot read response: %w", err)
 	}
 
-	var responseJson map[string]interface{}
+	var responseJson Response
 
 	erro := json.Unmarshal(responseBody, &responseJson)
 	
@@ -90,5 +60,5 @@ func SearchArtist(id string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("cannot read response: %w", err)
 	}
 
-	return responseJson, nil
+	return &responseJson, nil
 }
