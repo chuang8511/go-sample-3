@@ -5,19 +5,24 @@ import(
 	"net/http"
 	"io"
 	"encoding/json"
+	"time"
+	"github.com/redis/go-redis"
+	"context"
 )
 
-type Token struct {
-	AcessToken string `json:"access_token"`
-	TokenType  string `json:"token_type"`
-	ExpiresIn  int    `json:"expires_in"`
+
+func expiredDateTime(expiresIn int) time.Time {
+	currentDateTime := time.Now()
+	expireDateTime := currentDateTime.Add(time.Second * time.Duration(expiresIn))
+	return expireDateTime
 }
+
 
 func GetToken() (*Token, error) {
 	
 	grantType := "client_credentials"
-	clientId := "mockid" // remember to mock it
-	clientSecret := "mock secret" // remember to mock it
+	clientId := "" // remember to mock it
+	clientSecret := "" // remember to mock it
 	bodyString := "grant_type=" + grantType + "&client_id=" + clientId + "&client_secret=" + clientSecret
 	url := "https://accounts.spotify.com/api/token"
 
@@ -51,6 +56,20 @@ func GetToken() (*Token, error) {
 	if erro != nil {
 		return nil, err
 	}
+
+	var ctx = context.Background()
+	
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+        Password: "",
+        DB:       0,
+	})
+
+	expiredDateTime := expiredDateTime(token.ExpiresIn)
+	tokenSession := make(map[string]interface{})
+	tokenSession["token"] = token.AcessToken
+	tokenSession["expiredDateTime"] = expiredDateTime
+	rdb.HSet(ctx, "tokenSession", tokenSession)
 
 	return &token, erro
 	
