@@ -2,14 +2,12 @@ package spotifySearch
 
 import (
 	"../spotifytoken"
-	"io"
-	"net/http"
 	"encoding/json"
 	"fmt"
 )
 
 
-func SearchArtist(id string) (*Response, error) {
+func SearchArtist(id string) (*ArtistResponse, error) {
 
 	var token string
 	token, _ = spotifytoken.GetCacheToken()
@@ -29,35 +27,23 @@ func SearchArtist(id string) (*Response, error) {
 
 	requestUrl := spotifyDomainUrl + category + artistId
 
-	req, err := http.NewRequest("GET", requestUrl, nil)
-	if err != nil {
-		return nil, fmt.Errorf("cannot build request: %w", err)
-	}
+	responseBody, _ := FetchApi(requestUrl, token)
+
+	var responseJson ArtistResponse
+
+	err := json.Unmarshal(responseBody, &responseJson)
 	
-	req.Header.Set("Authorization", "Bearer " + token)
-
-	client := &http.Client{}
-	
-	resp, err := client.Do(req)
-
-	if err != nil {
-		return nil, fmt.Errorf("cannot send request: %w", err)
-	}
-
-	defer resp.Body.Close()
-
-	responseBody, err := io.ReadAll(resp.Body)
-
 	if err != nil {
 		return nil, fmt.Errorf("cannot read response: %w", err)
 	}
 
-	var responseJson Response
+	for responseJson.Episodes.Next != "" {
+		responseBody, _ := FetchApi(responseJson.Episodes.Next, token)
+		var episodes Episodes
 
-	erro := json.Unmarshal(responseBody, &responseJson)
-	
-	if erro != nil {
-		return nil, fmt.Errorf("cannot read response: %w", err)
+		json.Unmarshal(responseBody, &episodes)
+		responseJson.Episodes.Next = episodes.Next
+		responseJson.Episodes.Items = append(responseJson.Episodes.Items, episodes.Items...)
 	}
 
 	return &responseJson, nil

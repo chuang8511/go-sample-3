@@ -44,7 +44,7 @@ type Episodes struct {
 	Items    []Episode `json:"items"`
 }
 
-type Response struct {
+type ArtistResponse struct {
 	// AvailableMarkets []string `json:"available_markets"`
 	Episodes         Episodes `json:"episodes"`
 }

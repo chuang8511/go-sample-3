@@ -1,31 +1,21 @@
 package main
 
 import (
-	"fmt"
+	// "fmt"
 	"./spotifyFilter"
 	"./spotifySearch"
 	"./spotifySelector"
+	"./exporter"
 )
 
 func main() {
 	
 	responseJson, _ := spotifySearch.SearchArtist("13bJ4DAZH1QLc1fOmlZI24")	
 
-	fmt.Println(responseJson.Episodes.Limit)
-	fmt.Println(responseJson.Episodes.Next)
-	fmt.Println(responseJson.Episodes.Offset)
-
-	res, err := spotifyFilter.Filter(responseJson.Episodes, "Name", "新資料夾")
+	res, _ := spotifyFilter.Filter(responseJson.Episodes, "Name", "新資料夾")
 	
-	if err != nil {
-		fmt.Println("err!!!!!!!!")
-	}
-
-	display, err := spotifySelector.Select(res)
-
-	if err != nil {
-		fmt.Println("err!!!!!!!!")
-	}
+	display, _ := spotifySelector.Select(res)
 	
-	fmt.Println(display)
+	exporter.ExportToCSV(display, "PlayList.csv", []string{"Name", "PlayLink"})
+
 }
