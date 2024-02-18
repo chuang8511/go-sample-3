@@ -15,7 +15,12 @@ func main() {
 	res, _ := spotifyFilter.Filter(responseJson.Episodes, "Name", "新資料夾")
 	
 	display, _ := spotifySelector.Select(res)
-	
-	exporter.ExportToCSV(display, "PlayList.csv", []string{"Name", "PlayLink"})
 
+	exporters := exporter.GetAllExporters()
+
+	for _, e := range exporters {
+		e.Export(display, "PlayList")
+	}
+
+	// fmt.Println(display)
 }
