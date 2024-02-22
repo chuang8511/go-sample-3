@@ -40,7 +40,7 @@ type Episodes struct {
 	Next     string `json:"next"`
 	Offset   int    `json:"offset"`
 	// Previous string `json:"previous"`
-	// Total    int    `json:"total"`
+	Total    int    `json:"total"`
 	Items    []Episode `json:"items"`
 }
 

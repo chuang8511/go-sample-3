@@ -4,6 +4,7 @@ import (
 	"../spotifytoken"
 	"encoding/json"
 	"fmt"
+	"sync"
 )
 
 
@@ -27,7 +28,7 @@ func SearchArtist(id string) (*ArtistResponse, error) {
 
 	requestUrl := spotifyDomainUrl + category + artistId
 
-	responseBody, _ := FetchApi(requestUrl, token)
+	responseBody, _ := FetchApi(requestUrl, token, nil, nil)
 
 	var responseJson ArtistResponse
 
@@ -37,14 +38,34 @@ func SearchArtist(id string) (*ArtistResponse, error) {
 		return nil, fmt.Errorf("cannot read response: %w", err)
 	}
 
-	for responseJson.Episodes.Next != "" {
-		responseBody, _ := FetchApi(responseJson.Episodes.Next, token)
-		var episodes Episodes
+	totalCount := responseJson.Episodes.Total
+	onePageCount := responseJson.Episodes.Limit
 
-		json.Unmarshal(responseBody, &episodes)
-		responseJson.Episodes.Next = episodes.Next
-		responseJson.Episodes.Items = append(responseJson.Episodes.Items, episodes.Items...)
+	loopCount := totalCount / onePageCount - 1
+
+	var waitGroup sync.WaitGroup
+	ch := make(chan []byte, loopCount)
+
+	for i := 1; i < loopCount; i++ {
+		waitGroup.Add(1)
+		go FetchApi(responseJson.Episodes.Next, token, &waitGroup, ch)
+		
 	}
+
+	go func() {
+        waitGroup.Wait()
+        close(ch)
+    }()
+	
+	for responseBody := range ch {
+        var episodes Episodes
+
+		if err := json.Unmarshal(responseBody, &episodes); err != nil {
+            fmt.Println("Error unmarshalling response:", err)
+            continue
+        }
+        responseJson.Episodes.Items = append(responseJson.Episodes.Items, episodes.Items...)
+    }
 
 	return &responseJson, nil
 }

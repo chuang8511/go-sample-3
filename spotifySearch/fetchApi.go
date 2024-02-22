@@ -5,11 +5,18 @@ import (
 	"io"
 	"net/http"
 	"fmt"
+	"sync"
 )
 
 
-func FetchApi(requestUrl string, token string) ([]byte, error) {
+func FetchApi(requestUrl string, token string, wg *sync.WaitGroup, ch chan []byte) ([]byte, error) {
 	
+	// concurrency
+	if wg != nil {
+		defer wg.Done()
+	}
+	
+	fmt.Println("Fetch Api")
 	req, err := http.NewRequest("GET", requestUrl, nil)
 	if err != nil {
 		return nil, fmt.Errorf("cannot build request: %w", err)
@@ -32,5 +39,12 @@ func FetchApi(requestUrl string, token string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cannot read response: %w", err)
 	}
+
+	// concurrency
+	if ch != nil {
+		ch <- responseBody
+	}
+	fmt.Println("Get Api Response")
 	return responseBody, nil
+	
 }
