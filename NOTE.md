@@ -30,6 +30,8 @@ curl -X POST "https://accounts.spotify.com/api/token" \
      -H "Content-Type: application/x-www-form-urlencoded" \
      -d "grant_type=client_credentials&client_id=xx&client_secret=xx"
 
+https://accounts.spotify.com/authorize?client_id=client_id&response_type=token&redirect_uri=http://localhost:8080/authorize&scope=user-read-private&user-read-email
+
 
 {"access_token":"BQAAX5jipGBDnyTkzYpRgP8Mq62jnrrvyridItCeRNXTJsMF5Eo5TUNy2is1viv7dO8VxnxnX_cCwPxuNi3ZR0W8nnRQtVHQSB2hbkUOyQuwateJ3Oo","token_type":"Bearer","expires_in":3600}
 
@@ -73,4 +75,12 @@ curl --request GET \
 
 curl --request GET \
   --url https://api.spotify.com/v1/shows/13bJ4DAZH1QLc1fOmlZI24 \
-  --header 'Authorization: Bearer BQCSnuFjCKJm6F3wEmPhitqh4048voPCXtYdATMjeGg8XRQm1h9mrjRB0do4rVNWpYSEwJq5MaKjwwFb9WKlSwBQvjbzjI4ephKHUhUjbBMr7kRcWIk'
+  --header 'Authorization: Bearer BQBoVSZIkR7hB8XFfJ2Uy0HIDaALO06HCGbC1cXLXPQ2CcUoL__7j9RhWq3eNisXxR2ve01Zs5xUByq535nrVqKNAHQG4Gib07vjk0z0eaYFHk_382o'
+
+
+
+curl --request GET \
+  --url https://api.spotify.com/v1/me/playlists \
+  --header 'Authorization: Bearer BQBoVSZIkR7hB8XFfJ2Uy0HIDaALO06HCGbC1cXLXPQ2CcUoL__7j9RhWq3eNisXxR2ve01Zs5xUByq535nrVqKNAHQG4Gib07vjk0z0eaYFHk_382o'
+
+  

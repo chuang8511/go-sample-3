@@ -21,6 +21,7 @@ func SearchArtist(id string) (*ArtistResponse, error) {
 		}
 		token = tokenStruct.AcessToken
 	}	
+	fmt.Println("token: ", token)
 
 	artistId := id
 	spotifyDomainUrl := "https://api.spotify.com/v1/"
